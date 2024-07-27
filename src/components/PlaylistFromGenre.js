@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import axiosInstance from "../services/AxiosInstance";
 import { useNavigate } from "react-router-dom";
 import SpotifyLogin from "./SpotifyLogin";
+import capitalize from "../services/Capitalize";
 
-const PlaylistFromArtist = () => {
-  const [artist, setArtist] = useState("");
+const PlaylistFromGenre = () => {
+  const [genres, setGenres] = useState([]);
+  const [selectedGenre, setSelectedGenre] = useState("");
   const [error, setError] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -17,6 +19,7 @@ const PlaylistFromArtist = () => {
         const response = await axiosInstance.get('check-authentication/');
         if (response.data.authenticated) {
           setAuthenticated(true);
+          getGenres();
         } else {
           setAuthenticated(false);
         }
@@ -31,8 +34,17 @@ const PlaylistFromArtist = () => {
     checkAuthentication();
   }, []);
 
-  const handleInputChange = (e) => {
-    setArtist(e.target.value)
+  const getGenres = async () => {
+    try {
+      const response = await axiosInstance.get("http://localhost:8000/api/genres/")
+      setGenres(response.data.genres);
+    } catch (error) {
+      console.error("Error fetching genres:", error);
+    }
+  };
+
+  const handleGenreChange = (e) => {
+    setSelectedGenre(e.target.value);
   };
 
   const handleSubmit = async (e) => {
@@ -40,14 +52,14 @@ const PlaylistFromArtist = () => {
     setSubmitLoading(true);
 
     try {
-      const response = await axiosInstance.post('create-artist-playlist/', {
-        artist_name: artist
+      const response = await axiosInstance.post('create-genre-playlist/', {
+        genre: selectedGenre
       });
-      const playlistId = response.data.playlist.id
+      const playlistId = response.data.playlist.id;
       navigate("/success", { state: { playlistId } });
     } catch (error) {
-      setError("Failed to create playlist.")
-      console.error("An error occurred:", error)
+      setError("Failed to create playlist.");
+      console.error("An error occurred:", error);
     } finally {
       setSubmitLoading(false);
     }
@@ -75,25 +87,26 @@ const PlaylistFromArtist = () => {
   return (
     <div className="container mt-5">
       <div>
-        <h1>Playlist From Artist</h1>
+        <h1>Playlist From Genre</h1>
         <p>
-          This page will create a playlist for you consisting of songs similar to the artist you specified. 
-          The input box will find the artist closest to what is typed.
-          This will not work for very small artists.
+          This page will create a playlist for you consisting of music from the selected genre.
         </p>
       </div>
       <form className="mt-5" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="artistName" className="form-label">Artist Name</label>
-          <input 
-            type="text" 
-            className="form-control" 
-            id="artistName" 
-            value={artist}
-            onChange={handleInputChange}
-            placeholder="Enter artist name."
+        <div className="from-group">
+          <label htmlFor="genreSelect" className="form-label">Select Genre</label>
+          <select
+            className="form-control"
+            id="genreSelect"
+            value={selectedGenre}
+            onChange={handleGenreChange}
             required
-          />
+          >
+            <option value="" disabled>Select a genre</option>
+            {genres.map((genre, index) => (
+              <option key={index} value={genre}>{capitalize(genre)}</option>
+            ))}
+          </select>
         </div>
         {error && (
           <p className="text-danger">{error}</p>
@@ -112,4 +125,4 @@ const PlaylistFromArtist = () => {
   );
 };
 
-export default PlaylistFromArtist;
+export default PlaylistFromGenre;
