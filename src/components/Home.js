@@ -10,6 +10,7 @@ const Home = () => {
         <ul>
           <li><Link to="playlist-from-artist">Create a playlist similar to a specific artist</Link></li>
           <li><Link to="playlist-from-genre">Create a playlist similar from a specific genre</Link></li>
+          <li><Link to="playlist-from-top-tracks">Create a playlist of your top tracks</Link></li>
         </ul>
       </div>
     </div>

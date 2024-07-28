@@ -14,6 +14,7 @@ const Base = () => {
             <Nav.Link href="/">Home</Nav.Link>
             <Nav.Link href="playlist-from-artist">Playlist From Artist</Nav.Link>
             <Nav.Link href="playlist-from-genre">Playlist From Genre</Nav.Link>
+            <Nav.Link href="playlist-from-top-tracks">Playlist From Top Tracks</Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>
