@@ -5,7 +5,7 @@ import Navbar from 'react-bootstrap/Navbar';
 
 const Base = () => {
   return (
-    <Navbar expand="lg" className="bg-body-tertiary">
+    <Navbar expand="lg" className="spotify-navbar">
       <Container>
         <Navbar.Brand href="/">Spotify Playlists</Navbar.Brand>
         <Navbar.Toggle aria-controls="navbar-nav" />
