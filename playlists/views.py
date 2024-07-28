@@ -272,19 +272,24 @@ def create_top_tracks_playlist(request):
 
     if not timeframe:
         timeframe = 'short_term'
-    top_tracks_url = f'https://api.spotify.com/v1/me/top/tracks?time_range={timeframe}&limit=20'
     headers = {'Authorization': f'Bearer {access_token}'}
-    top_tracks_response = make_request(request, top_tracks_url, headers)
 
-    try:
-        top_tracks_data = top_tracks_response.json()
-    except:
-        pass
+    # First request: Get the first 50 top tracks
+    top_tracks_url = f'https://api.spotify.com/v1/me/top/tracks?time_range={timeframe}&limit=50'
+    top_tracks_response_1 = make_request(request, top_tracks_url, headers)
+    top_tracks_data_1 = top_tracks_response_1.json()['items']
 
-    if 'items' not in top_tracks_data or len(top_tracks_data['items']) == 0:
+    # Second request: Get the next 50 top tracks
+    top_tracks_url = f'https://api.spotify.com/v1/me/top/tracks?time_range={timeframe}&limit=50&offset=50'
+    top_tracks_response_2 = make_request(request, top_tracks_url, headers)
+    top_tracks_data_2 = top_tracks_response_2.json()['items']
+
+    top_tracks_data = top_tracks_data_1 + top_tracks_data_2
+
+    if len(top_tracks_data) == 0:
         return JsonResponse({'error': 'No top tracks found'}, status=404)
 
-    track_uris = [track['uri'] for track in top_tracks_data['items']]
+    track_uris = [track['uri'] for track in top_tracks_data]
 
     create_playlist_url = f'https://api.spotify.com/v1/users/{user_id}/playlists'
     create_playlist_response = requests.post(
@@ -292,7 +297,7 @@ def create_top_tracks_playlist(request):
         headers={'Authorization': f'Bearer {access_token}', 'Content-Type': 'application/json'},
         json={
             'name': f'My Top Tracks',
-            'description': f'Playlist of top tracks {timeframe}',
+            'description': f'Playlist of top tracks {timeframes[timeframe]}',
             'public': True
         }
     )
