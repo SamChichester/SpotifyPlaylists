@@ -6,6 +6,13 @@ import json
 import random
 
 
+timeframes = {
+    'short_term': 'in the last 4 weeks',
+    'medium_term': 'in the last 6 months',
+    'long_term': 'of all time'
+}
+
+
 def spotify_login(request):
     redirect_url = request.GET.get('redirect', '/')
     auth_url = (
@@ -13,7 +20,7 @@ def spotify_login(request):
         'response_type=code'
         '&client_id={}'
         '&redirect_uri={}'
-        '&scope=playlist-modify-public'
+        '&scope=playlist-modify-public user-top-read'
         '&state={}'.format(
             settings.SPOTIFY_CLIENT_ID, settings.SPOTIFY_REDIRECT_URI, redirect_url
         )
@@ -189,6 +196,10 @@ def create_genre_playlist(request):
     if not access_token:
         return JsonResponse({'error': 'No access token found in session'}, status=401)
 
+    user_id = request.session.get('spotify_user_id')
+    if not user_id:
+        return JsonResponse({'error': 'User ID not found'}, status=401)
+
     try:
         data = json.loads(request.body)
         genre = data.get('genre')
@@ -206,7 +217,6 @@ def create_genre_playlist(request):
 
     track_uris = [track['uri'] for track in recommendations_data['tracks']]
 
-    user_id = request.session.get('spotify_user_id')
     create_playlist_url = f'https://api.spotify.com/v1/users/{user_id}/playlists'
     create_playlist_response = requests.post(
         create_playlist_url,
@@ -229,12 +239,6 @@ def create_genre_playlist(request):
     return JsonResponse({'playlist': {'id': playlist_id}})
 
 
-def check_authentication(request):
-    if request.session.get('access_token'):
-        return JsonResponse({'authenticated': True})
-    return JsonResponse({'authenticated': False}, status=401)
-
-
 def get_genres(request):
     access_token = request.session.get('access_token')
     if not access_token:
@@ -249,3 +253,64 @@ def get_genres(request):
 
     genres = response.json().get('genres', [])
     return JsonResponse({'genres': genres})
+
+
+def create_top_tracks_playlist(request):
+    access_token = request.session.get('access_token')
+    if not access_token:
+        return JsonResponse({'error': 'No access token found in session'}, status=401)
+
+    user_id = request.session.get('spotify_user_id')
+    if not user_id:
+        return JsonResponse({'error': 'User ID not found'}, status=401)
+
+    try:
+        data = json.loads(request.body)
+        timeframe = data.get('timeframe')
+    except (ValueError, TypeError):
+        return JsonResponse({'error': 'Invalid request data'}, status=400)
+
+    if not timeframe:
+        timeframe = 'short_term'
+    top_tracks_url = f'https://api.spotify.com/v1/me/top/tracks?time_range={timeframe}&limit=20'
+    headers = {'Authorization': f'Bearer {access_token}'}
+    top_tracks_response = make_request(request, top_tracks_url, headers)
+
+    try:
+        top_tracks_data = top_tracks_response.json()
+    except:
+        pass
+
+    if 'items' not in top_tracks_data or len(top_tracks_data['items']) == 0:
+        return JsonResponse({'error': 'No top tracks found'}, status=404)
+
+    track_uris = [track['uri'] for track in top_tracks_data['items']]
+
+    create_playlist_url = f'https://api.spotify.com/v1/users/{user_id}/playlists'
+    create_playlist_response = requests.post(
+        create_playlist_url,
+        headers={'Authorization': f'Bearer {access_token}', 'Content-Type': 'application/json'},
+        json={
+            'name': f'My Top Tracks',
+            'description': f'Playlist of top tracks {timeframe}',
+            'public': True
+        }
+    )
+    playlist_id = create_playlist_response.json()['id']
+
+    add_tracks_url = f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'
+    add_tracks_response = requests.post(
+        add_tracks_url,
+        headers={'Authorization': f'Bearer {access_token}', 'Content-Type': 'application/json'},
+        json={'uris': track_uris}
+    )
+
+    return JsonResponse({'playlist': {'id': playlist_id}})
+
+
+def check_authentication(request):
+    if request.session.get('access_token'):
+        return JsonResponse({'authenticated': True})
+    return JsonResponse({'authenticated': False}, status=401)
+
+
