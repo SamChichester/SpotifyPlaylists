@@ -317,5 +317,3 @@ def check_authentication(request):
     if request.session.get('access_token'):
         return JsonResponse({'authenticated': True})
     return JsonResponse({'authenticated': False}, status=401)
-
-
