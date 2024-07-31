@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./spotify_backend
+    container_name: backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SECRET_KEY=django-insecure-+8vag3b8#vk=^qfaf#-n2g9ga$l(39&*u#z*ooi2lol9!b6x^7
+      - DEBUG=False
+    volumes:
+      - ./spotify_backend:/app
+      - /app/venv
+
+  frontend:
+    build: ./spotify_frontend/frontend
+    container_name: frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./spotify_frontend/frontend:/app
