@@ -2,10 +2,13 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY package*.json /app/
-RUN npm install
+RUN npm install --production
 
 COPY . /app/
+RUN npm run build
 
-EXPOSE 3000
+FROM nginx:alpine
+COPY --from=0 /app/build /usr/share/nginx/html
+EXPOSE 80
 
-CMD ["npm", "start"]
+CMD ["nginx", "-g", "daemon off;"]
