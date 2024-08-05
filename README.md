@@ -36,12 +36,12 @@ Users are directed to the Spotify login when they attempt to create a custom pla
 #### Playlist From Artist
 Creates a playlist on the user's Spotify account consisting of songs similar to the specified artist.
 
-![Project Screenshot](https://res.cloudinary.com/dvsvlcbec/image/upload/v1722843228/DEMOgymwebsite_2_evgsac.gif)
+![Project Screenshot](https://res.cloudinary.com/dvsvlcbec/image/upload/v1722843980/DEMOgymwebsite_8_zfo1he.gif)
 
 #### Playlist From Genre
 Creates a playlist on the user's Spotify account consisting of the top songs of the chosen genre.
 
-![Project Screenshot](https://res.cloudinary.com/dvsvlcbec/image/upload/v1722843332/DEMOgymwebsite_4_l9xzpo.gif)
+![Project Screenshot](https://res.cloudinary.com/dvsvlcbec/image/upload/v1722843910/DEMOgymwebsite_7_ado0c5.gif)
 
 #### Playlist From Top Tracks
 Creates a playlist on the user's Spotify account consisting of their most listened songs during the selected time range.
